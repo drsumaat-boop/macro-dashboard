@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Macro Dashboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0e1a; color: #e2e8f0; font-family: 'Courier New', monospace; }
+.header { background: linear-gradient(135deg, #0f172a, #1e1b4b); border-bottom: 1px solid #1e293b; padding: 20px 16px 14px; }
+.header-sub { font-size: 10px; color: #64748b; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 5px; }
+.header-title { font-size: 22px; font-weight: 700; color: #f8fafc; }
+.header-desc { font-size: 11px; color: #475569; margin-top: 4px; }
+.header-time { font-size: 10px; color: #334155; margin-top: 6px; }
+.tabs { display: flex; background: #0f172a; border-bottom: 1px solid #1e293b; }
+.tab { flex: 1; padding: 12px 4px; background: transparent; color: #475569; border: none; cursor: pointer; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-family: inherit; border-bottom: 2px solid transparent; }
+.tab.active { background: #1e293b; color: #f8fafc; border-bottom: 2px solid #6366f1; }
+.content { padding: 16px; display: none; }
+.content.active { display: block; }
+.card { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s; }
+.card:hover { background: #1e293b; }
+.card-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.card-name { font-size: 12px; font-weight: 600; color: #f1f5f9; margin-bottom: 3px; }
+.card-desc { font-size: 10px; color: #475569; margin-bottom: 6px; }
+.card-date { font-size: 9px; color: #334155; margin-top: 4px; }
+.card-value { font-size: 22px; font-weight: 700; text-align: right; }
+.analysis-box { background: #0a0f1e; border: 1px solid #312e81; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+.analysis-title { font-size: 11px; color: #6366f1; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+.phase-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+.signal-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #0f172a; }
+.signal-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.signal-text { flex: 1; }
+.signal-val { font-size: 11px; font-weight: 600; }
+.meter-bar { height: 6px; border-radius: 3px; background: #1e293b; margin-top: 6px; overflow: hidden; }
+.meter-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.watch-item { background: #0f172a; border-radius: 6px; padding: 10px 12px; margin-bottom: 6px; border-left: 3px solid #6366f1; }
+.watch-title { font-size: 11px; font-weight: 600; color: #a5b4fc; margin-bottom: 3px; }
+.watch-desc { font-size: 10px; color: #64748b; line-height: 1.5; }
+.asset-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #0f172a; }
+.asset-name { font-size: 11px; color: #94a3b8; }
+.asset-signal { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.phase-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; }
+.phase-body { display: none; margin-top: 12px; padding-top: 12px; }
+.phase-body.open { display: block; }
+.check-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #0f172a; cursor: pointer; }
+.checkbox { width: 16px; height: 16px; border-radius: 3px; border: 1.5px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+.source-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s; }
+.source-card:hover { background: #1e293b; }
+.ticker-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #0f172a; font-size: 11px; }
+.loading-pulse { animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.refresh-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; border-radius: 6px; padding: 8px 16px; font-size: 10px; cursor: pointer; font-family: inherit; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">Intermarket Analysis</div>
+  <div class="header-title">Macro Dashboard</div>
+  <div class="header-desc">Live Data · Auto Analysis · No API Key Needed</div>
+  <div class="header-time" id="last-update">Fetching live data...</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('analysis',this)">🧠 Analysis</button>
+  <button class="tab" onclick="switchTab('indicators',this)">📊 Data</button>
+  <button class="tab" onclick="switchTab('cycle',this)">🔄 Cycle</button>
+  <button class="tab" onclick="switchTab('sources',this)">🔗 Sources</button>
+</div>
+
+<div id="tab-analysis" class="content active">
+  <div id="analysis-loading" class="analysis-box" style="text-align:center;padding:30px">
+    <div class="loading-pulse" style="font-size:13px;color:#6366f1">⟳ Fetching live macro data from FRED...</div>
+    <div style="font-size:10px;color:#334155;margin-top:8px">Please wait a moment</div>
+  </div>
+  <div id="analysis-content" style="display:none">
+    <div class="analysis-box">
+      <div class="analysis-title">✦ Current Cycle Phase</div>
+      <div style="text-align:center">
+        <div class="phase-badge" id="phase-badge">—</div>
+        <div id="phase-desc" style="font-size:11px;color:#94a3b8;line-height:1.7;margin-top:8px;text-align:left"></div>
+      </div>
+    </div>
+    <div class="analysis-box">
+      <div class="analysis-title">📡 Live Signal Scorecard</div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-bottom:14px">
+        <div style="text-align:center"><div style="font-size:11px;color:#22c55e;margin-bottom:4px">BULLISH</div><div id="bull-count" style="font-size:28px;font-weight:700;color:#22c55e">—</div></div>
+        <div style="text-align:center"><div style="font-size:11px;color:#f59e0b;margin-bottom:4px">CAUTION</div><div id="caut-count" style="font-size:28px;font-weight:700;color:#f59e0b">—</div></div>
+        <div style="text-align:center"><div style="font-size:11px;color:#ef4444;margin-bottom:4px">BEARISH</div><div id="bear-count" style="font-size:28px;font-weight:700;color:#ef4444">—</div></div>
+      </div>
+      <div id="signal-rows"></div>
+    </div>
+    <div class="analysis-box">
+      <div class="analysis-title">⚖️ Risk Appetite Meter</div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#475569;margin-bottom:4px">
+        <span>RISK OFF</span><span>NEUTRAL</span><span>RISK ON</span>
+      </div>
+      <div class="meter-bar"><div class="meter-fill" id="risk-meter" style="width:50%;background:#f59e0b"></div></div>
+      <div id="risk-label" style="font-size:11px;color:#94a3b8;margin-top:8px;text-align:center"></div>
+    </div>
+    <div class="analysis-box">
+      <div class="analysis-title">💼 Asset Class Positioning</div>
+      <div id="asset-verdicts"></div>
+    </div>
+    <div class="analysis-box">
+      <div class="analysis-title">👁 Key Things to Watch</div>
+      <div id="watch-items"></div>
+    </div>
+    <div style="text-align:center;margin-top:4px;padding-bottom:20px">
+      <button class="refresh-btn" onclick="refreshData()">⟳ Refresh Live Data</button>
+    </div>
+  </div>
+</div>
+
+<div id="tab-indicators" class="content">
+  <div style="font-size:11px;color:#475569;margin-bottom:12px;letter-spacing:1px">LIVE FROM FRED · TAP TO OPEN SOURCE</div>
+  <div id="indicators-container"></div>
+</div>
+
+<div id="tab-cycle" class="content">
+  <div style="font-size:11px;color:#475569;margin-bottom:14px;letter-spacing:1px">TAP PHASE TO EXPAND</div>
+  <div id="cycle-container"></div>
+  <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-top:8px">
+    <div style="font-size:11px;color:#6366f1;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px">Pre-Trade Checklist</div>
+    <div id="checklist"></div>
+  </div>
+</div>
+
+<div id="tab-sources" class="content">
+  <div style="font-size:11px;color:#475569;margin-bottom:14px;letter-spacing:1px">ALL FREE · TAP TO OPEN</div>
+  <div id="sources-container"></div>
+  <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-top:8px">
+    <div style="font-size:11px;color:#6366f1;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px">Ticker Reference</div>
+    <div id="tickers-container"></div>
+  </div>
+</div>
+
+<script>
+const FRED_SERIES = [
+  { id:"T10Y2Y",           label:"Yield Curve (10Y-2Y)",  unit:"%", url:"https://fred.stlouisfed.org/series/T10Y2Y" },
+  { id:"BAMLH0A0HYM2",    label:"HY Credit Spread",       unit:"%", url:"https://fred.stlouisfed.org/series/BAMLH0A0HYM2" },
+  { id:"DGS10",            label:"10Y Treasury Yield",     unit:"%", url:"https://fred.stlouisfed.org/series/DGS10" },
+  { id:"DGS2",             label:"2Y Treasury Yield",      unit:"%", url:"https://fred.stlouisfed.org/series/DGS2" },
+  { id:"DTWEXBGS",         label:"USD Broad Index",        unit:"",  url:"https://fred.stlouisfed.org/series/DTWEXBGS" },
+  { id:"GOLDAMGBD228NLBM", label:"Gold Price (USD/oz)",    unit:"$", url:"https://fred.stlouisfed.org/series/GOLDAMGBD228NLBM" },
+];
+
+const TV = [
+  { label:"VIX (Volatility)",  url:"https://www.tradingview.com/symbols/CBOE-VIX/",              desc:"Fear gauge — below 15 complacency, above 30 panic" },
+  { label:"Copper/Gold Ratio", url:"https://www.tradingview.com/symbols/CAPITALCOM-COPPERGOLD/", desc:"Rising = growth optimism, Falling = fear" },
+  { label:"WTI Crude Oil",     url:"https://www.tradingview.com/symbols/NYMEX-CL1!/",            desc:"Leads inflation expectations" },
+  { label:"S&P 500 (SPX)",     url:"https://www.tradingview.com/symbols/SP-SPX/",                desc:"Broad equity market health" },
+];
+
+const PHASES = [
+  { name:"Early Expansion", color:"#22c55e",
+    signals:["Yield curve steepening","Credit spreads tightening","VIX declining","Central bank cutting"],
+    leaders:["Cyclical stocks","Corporate bonds","Small caps","EM equities"],
+    laggards:["Commodities bottoming","Defensives underperform","USD weakening"] },
+  { name:"Mid Expansion", color:"#60a5fa",
+    signals:["Yield curve positive","Credit spreads tight","VIX low","Earnings growing"],
+    leaders:["Broad equities","Commodities","EM markets","Real assets"],
+    laggards:["Long bonds struggling","Defensives underperform"] },
+  { name:"Late Expansion", color:"#f59e0b",
+    signals:["Yield curve flattening","Inflation rising","Central bank hiking","Spreads bottoming"],
+    leaders:["Commodities peak","Value stocks","Financials","Energy"],
+    laggards:["Growth/Tech","Long bonds","Housing"] },
+  { name:"Contraction", color:"#ef4444",
+    signals:["Yield curve inverted","Spreads widening","VIX spiking","Earnings falling"],
+    leaders:["Government bonds","Gold","USD","Defensives"],
+    laggards:["Cyclicals","Commodities","Emerging markets"] },
+];
+
+const SOURCES = [
+  { name:"FRED (St. Louis Fed)", url:"https://fred.stlouisfed.org", what:"Yield curve, credit spreads, yields — free, authoritative", color:"#60a5fa" },
+  { name:"TradingView",          url:"https://www.tradingview.com", what:"VIX, DXY, Copper/Gold, Oil — live charting", color:"#a78bfa" },
+  { name:"CME FedWatch",         url:"https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html", what:"Fed rate cut/hike probabilities", color:"#fb923c" },
+  { name:"Finviz Heatmap",       url:"https://finviz.com/map.ashx", what:"Sector rotation heatmap", color:"#f472b6" },
+  { name:"Koyfin",               url:"https://app.koyfin.com", what:"Full macro dashboard — free tier available", color:"#38bdf8" },
+  { name:"CBOE VIX",             url:"https://www.cboe.com/tradable_products/vix/", what:"Official VIX data and term structure", color:"#34d399" },
+];
+
+const TICKERS = [
+  ["Yield Curve","T10Y2Y","FRED"],["HY Spread","BAMLH0A0HYM2","FRED"],
+  ["10Y Yield","DGS10","FRED"],["2Y Yield","DGS2","FRED"],
+  ["VIX","CBOE:VIX","TradingView"],["DXY Dollar","TVC:DXY","TradingView"],
+  ["Copper/Gold","CAPITALCOM:COPPERGOLD","TradingView"],["WTI Oil","NYMEX:CL1!","TradingView"],
+  ["Gold","TVC:GOLD","TradingView"],["S&P 500","SP:SPX","TradingView"],
+];
+
+const liveData = {};
+
+async function fetchFred(s) {
+  try {
+    const res  = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${s.id}`);
+    const text = await res.text();
+    const lines = text.trim().split("\n").filter(l => !l.startsWith("DATE") && l.includes(","));
+    for (let i = lines.length-1; i >= 0; i--) {
+      const [date, val] = lines[i].split(",");
+      const v = parseFloat(val);
+      if (!isNaN(v)) { liveData[s.id] = { value:v, date }; return; }
+    }
+  } catch(e) { liveData[s.id] = null; }
+}
+
+function analyse() {
+  const yc  = liveData["T10Y2Y"]?.value;
+  const hy  = liveData["BAMLH0A0HYM2"]?.value;
+  const y10 = liveData["DGS10"]?.value;
+  const usd = liveData["DTWEXBGS"]?.value;
+  const gld = liveData["GOLDAMGBD228NLBM"]?.value;
+
+  const signals = [];
+  let bull=0, caut=0, bear=0;
+
+  function score(label, val, unit, good, warn, badNote, goodNote, warnNote) {
+    if (val == null) return;
+    let status, color, note;
+    if (good(val))      { status="BULLISH"; color="#22c55e"; note=goodNote; bull++; }
+    else if (warn(val)) { status="CAUTION"; color="#f59e0b"; note=warnNote; caut++; }
+    else                { status="BEARISH"; color="#ef4444"; note=badNote;  bear++; }
+    signals.push({ label, val: unit==="$" ? "$"+val.toFixed(0) : val.toFixed(2)+unit, status, color, note });
+  }
+
+  if (yc  != null) score("Yield Curve",     yc,  "%", v=>v>0.5,  v=>v>-0.5, "Inverted — recession signal",          "Steep — early/mid cycle bullish",    "Mildly inverted — late cycle watch");
+  if (hy  != null) score("HY Credit Spread",hy,  "%", v=>v<3.5,  v=>v<5.0,  "Wide — risk off / crisis mode",        "Tight — risk on, confidence high",   "Elevated — stress building");
+  if (y10 != null) score("10Y Yield",       y10, "%", v=>v<3.0,  v=>v<4.5,  "High — pressure on growth stocks",     "Low — supports growth assets",       "Moderate — neutral for equities");
+  if (usd != null) score("USD Index",       usd, "",  v=>v<110,  v=>v<120,  "Strong dollar — headwind for EM/commod","Weak/neutral — tailwind for risk",   "Moderate — watch direction");
+  if (gld != null) score("Gold Price",      gld, "$", v=>v<2000, v=>v<2800, "Very high — elevated fear/dollar worry","Moderate — no extreme fear signal",  "Elevated — safe haven demand");
+
+  const total = (bull+caut+bear) || 1;
+  const riskPct = Math.round((bull/total)*100);
+
+  const inv = yc != null && yc < 0;
+  const hiSpread = hy != null && hy > 4.5;
+
+  let phase, phaseColor, phaseDesc, assets, watches;
+
+  if (bear >= 2.5 || (inv && hiSpread)) {
+    phase="Contraction / Late Cycle"; phaseColor="#ef4444";
+    phaseDesc="Multiple indicators are flashing warning signs. Yield curve inversion combined with elevated credit spreads signals economic stress. This is a capital preservation environment — protect first, seek opportunity later when signals improve.";
+    assets=[
+      {name:"Government Bonds",       sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Gold",                    sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Cash / Short Duration",   sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Defensive Stocks",        sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Growth / Tech Stocks",    sig:"AVOID",   c:"#ef4444", bg:"#1c0707"},
+      {name:"High Yield Bonds",        sig:"AVOID",   c:"#ef4444", bg:"#1c0707"},
+      {name:"Emerging Markets",        sig:"AVOID",   c:"#ef4444", bg:"#1c0707"},
+      {name:"Cyclical Stocks",         sig:"AVOID",   c:"#ef4444", bg:"#1c0707"},
+    ];
+    watches=[
+      {title:"Yield curve un-inverting",    desc:"Steepening back above zero signals recession may have begun. Watch weekly."},
+      {title:"Credit spreads above 500bps", desc:"Break above 500bps signals move from stress to distress — major risk-off."},
+      {title:"Fed pivot timing",            desc:"First rate cut confirms late cycle. Equities often fall further after first cut."},
+    ];
+  } else if (bear >= 1.5 || (inv && !hiSpread)) {
+    phase="Late Expansion"; phaseColor="#f59e0b";
+    phaseDesc="The cycle is maturing. Yield curve flattening or mildly inverted while credit is still holding. Rate pressure building. Rotate toward value and defensives, reduce rate-sensitive growth exposure.";
+    assets=[
+      {name:"Value Stocks",            sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Energy / Commodities",    sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Financials",              sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Short Duration Bonds",    sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Growth / Tech Stocks",    sig:"REDUCE",  c:"#f59e0b", bg:"#1c1007"},
+      {name:"Long Duration Bonds",     sig:"REDUCE",  c:"#f59e0b", bg:"#1c1007"},
+      {name:"High Yield Bonds",        sig:"CAUTION", c:"#f59e0b", bg:"#1c1007"},
+      {name:"Emerging Markets",        sig:"CAUTION", c:"#f59e0b", bg:"#1c1007"},
+    ];
+    watches=[
+      {title:"Yield curve direction",   desc:"Steepening or inverting further? Direction matters more than level."},
+      {title:"Credit spread trend",     desc:"Any widening from here is an early warning signal. Watch weekly."},
+      {title:"Inflation data CPI/PCE",  desc:"Re-acceleration forces Fed higher for longer — negative for all assets."},
+    ];
+  } else if (bull >= 2.5) {
+    phase="Early / Mid Expansion"; phaseColor="#22c55e";
+    phaseDesc="Macro conditions are broadly supportive. Yield curve positive, credit stress low, risk appetite healthy. This is where equities and risk assets perform best. Favour cyclicals, growth, and emerging markets.";
+    assets=[
+      {name:"Broad Equities",          sig:"FAVOUR",   c:"#22c55e", bg:"#052e16"},
+      {name:"Growth / Tech Stocks",    sig:"FAVOUR",   c:"#22c55e", bg:"#052e16"},
+      {name:"Cyclical Stocks",         sig:"FAVOUR",   c:"#22c55e", bg:"#052e16"},
+      {name:"Emerging Markets",        sig:"FAVOUR",   c:"#22c55e", bg:"#052e16"},
+      {name:"Corporate Bonds",         sig:"FAVOUR",   c:"#22c55e", bg:"#052e16"},
+      {name:"Commodities",             sig:"BUILDING", c:"#60a5fa", bg:"#0c1a2e"},
+      {name:"Government Bonds",        sig:"NEUTRAL",  c:"#64748b", bg:"#0f172a"},
+      {name:"Cash",                    sig:"REDUCE",   c:"#f59e0b", bg:"#1c1007"},
+    ];
+    watches=[
+      {title:"Yield curve steepness",       desc:"As long as it stays positive and steep the risk-on trade remains intact."},
+      {title:"Credit spread compression",   desc:"Tightening spreads confirm risk-on. Any widening is first warning sign."},
+      {title:"Copper/Gold ratio trend",     desc:"Rising ratio confirms growth optimism. Watch for any reversal."},
+    ];
+  } else {
+    phase="Transition / Mixed Signals"; phaseColor="#a78bfa";
+    phaseDesc="Macro signals are mixed. Some constructive, some cautious. Be selective, avoid high-risk positions, and wait for clearer alignment before adding significant exposure.";
+    assets=[
+      {name:"Quality Stocks (low debt)", sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Short Duration Bonds",      sig:"FAVOUR",  c:"#22c55e", bg:"#052e16"},
+      {name:"Gold (hedge)",              sig:"HOLD",    c:"#64748b", bg:"#0f172a"},
+      {name:"High Beta Speculative",     sig:"AVOID",   c:"#ef4444", bg:"#1c0707"},
+      {name:"Emerging Markets",          sig:"CAUTION", c:"#f59e0b", bg:"#1c1007"},
+      {name:"High Yield Bonds",          sig:"CAUTION", c:"#f59e0b", bg:"#1c1007"},
+    ];
+    watches=[
+      {title:"Yield curve direction",       desc:"Steepening = bullish. Further inversion = bearish. Watch weekly."},
+      {title:"Credit spread confirmation",  desc:"Tightening confirms expansion. Widening confirms contraction."},
+      {title:"Sector relative strength",    desc:"Money flowing into cyclicals or defensives tells you where market thinks we are."},
+    ];
+  }
+  return { signals, bull, caut, bear, riskPct, phase, phaseColor, phaseDesc, assets, watches };
+}
+
+function buildAnalysis() {
+  const r = analyse();
+  const badge = document.getElementById("phase-badge");
+  badge.textContent = r.phase;
+  badge.style.cssText += `;background:${r.phaseColor}22;color:${r.phaseColor};border:1px solid ${r.phaseColor}`;
+  document.getElementById("phase-desc").textContent = r.phaseDesc;
+  document.getElementById("bull-count").textContent = r.bull;
+  document.getElementById("caut-count").textContent = r.caut;
+  document.getElementById("bear-count").textContent = r.bear;
+  document.getElementById("signal-rows").innerHTML = r.signals.map(s=>`
+    <div class="signal-row">
+      <div class="signal-dot" style="background:${s.color}"></div>
+      <div class="signal-text">
+        <div style="font-size:11px;font-weight:600;color:#f1f5f9">${s.label}</div>
+        <div style="font-size:10px;color:#64748b">${s.note}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="signal-val" style="color:${s.color}">${s.val}</div>
+        <div style="font-size:9px;color:${s.color}">${s.status}</div>
+      </div>
+    </div>`).join("");
+  const m = document.getElementById("risk-meter");
+  m.style.width = r.riskPct+"%";
+  m.style.background = r.riskPct>60?"#22c55e":r.riskPct>35?"#f59e0b":"#ef4444";
+  document.getElementById("risk-label").textContent =
+    r.riskPct>60?"Risk-On Environment — Favour Growth Assets":
+    r.riskPct>35?"Mixed — Be Selective, Manage Position Size":
+    "Risk-Off Environment — Favour Capital Preservation";
+  document.getElementById("asset-verdicts").innerHTML = r.assets.map(a=>`
+    <div class="asset-row">
+      <div class="asset-name">${a.name}</div>
+      <div class="asset-signal" style="color:${a.c};background:${a.bg}">${a.sig}</div>
+    </div>`).join("");
+  document.getElementById("watch-items").innerHTML = r.watches.map(w=>`
+    <div class="watch-item">
+      <div class="watch-title">${w.title}</div>
+      <div class="watch-desc">${w.desc}</div>
+    </div>`).join("");
+}
+
+function buildIndicators() {
+  let html = `<div style="font-size:10px;color:#60a5fa;letter-spacing:2px;margin-bottom:8px">▸ LIVE FROM FRED</div>`;
+  FRED_SERIES.forEach(s => {
+    const d = liveData[s.id];
+    const v = d?.value;
+    html += `<div class="card" style="border-left:3px solid #60a5fa" onclick="window.open('${s.url}','_blank')">
+      <div class="card-row">
+        <div style="flex:1">
+          <div class="card-name">${s.label} <span style="font-size:9px;color:#22c55e;background:#052e16;padding:1px 5px;border-radius:8px">LIVE</span></div>
+          <div class="card-date">${d?.date ? "Updated: "+d.date : '<span style="color:#ef4444">Could not load — tap to open source</span>'}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="card-value" style="color:#60a5fa">${v!=null ? s.unit+v.toFixed(2) : "—"}</div>
+          <div style="font-size:9px;color:#6366f1;margin-top:2px">↗ source</div>
+        </div>
+      </div>
+    </div>`;
+  });
+  html += `<div style="font-size:10px;color:#a78bfa;letter-spacing:2px;margin:16px 0 8px">▸ VIA TRADINGVIEW</div>`;
+  TV.forEach(t => {
+    html += `<div class="card" style="border-left:3px solid #a78bfa" onclick="window.open('${t.url}','_blank')">
+      <div class="card-row">
+        <div style="flex:1"><div class="card-name">${t.label}</div><div class="card-desc">${t.desc}</div></div>
+        <div style="font-size:9px;color:#6366f1">↗ chart</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById("indicators-container").innerHTML = html;
+}
+
+function buildCycle() {
+  document.getElementById("cycle-container").innerHTML = PHASES.map((p,i)=>`
+    <div class="phase-card" style="border-left:4px solid ${p.color}" onclick="togglePhase(${i})">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:${p.color};margin-bottom:3px">Phase ${i+1}: ${p.name}</div>
+          <div style="font-size:10px;color:#475569">${p.signals[0]} · ${p.signals[1]}</div>
+        </div>
+        <div id="tog-${i}" style="color:${p.color};font-size:16px">▼</div>
+      </div>
+      <div class="phase-body" id="pb-${i}" style="border-top:1px solid ${p.color}33">
+        <div style="font-size:10px;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">Key Signals</div>
+        ${p.signals.map(s=>`<div style="font-size:11px;color:#94a3b8;padding:3px 0">→ ${s}</div>`).join("")}
+        <div style="font-size:10px;color:#22c55e;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 6px">✓ What Leads</div>
+        ${p.leaders.map(s=>`<div style="font-size:11px;color:#86efac;padding:3px 0">↑ ${s}</div>`).join("")}
+        <div style="font-size:10px;color:#ef4444;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 6px">✗ What Lags</div>
+        ${p.laggards.map(s=>`<div style="font-size:11px;color:#fca5a5;padding:3px 0">↓ ${s}</div>`).join("")}
+      </div>
+    </div>`).join("");
+
+  const checks = ["Yield curve positive or steepening?","Credit spreads tight or tightening?","Copper/Gold ratio rising?","VIX declining or below 20?","USD neutral or weakening?","Bond yields stable or falling?","Sector showing relative strength?","Price chart aligned across timeframes?"];
+  document.getElementById("checklist").innerHTML = checks.map((item,i)=>`
+    <div class="check-item" id="ci-${i}" onclick="toggleCheck(${i})">
+      <div class="checkbox" id="cb-${i}"></div>
+      <span style="font-size:11px;color:#64748b" id="cl-${i}">${item}</span>
+    </div>`).join("");
+}
+
+function buildSources() {
+  document.getElementById("sources-container").innerHTML = SOURCES.map(s=>`
+    <div class="source-card" style="border-left:3px solid ${s.color}" onclick="window.open('${s.url}','_blank')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <div style="font-size:13px;font-weight:600;color:${s.color}">${s.name}</div>
+        <div style="font-size:9px;color:#6366f1">↗ open</div>
+      </div>
+      <div style="font-size:11px;color:#64748b;line-height:1.5">${s.what}</div>
+    </div>`).join("");
+  document.getElementById("tickers-container").innerHTML = TICKERS.map(t=>`
+    <div class="ticker-row">
+      <span style="color:#94a3b8">${t[0]}</span>
+      <span style="color:#60a5fa;font-family:monospace">${t[1]}</span>
+      <span style="color:#334155;font-size:10px">${t[2]}</span>
+    </div>`).join("");
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".content").forEach(c=>c.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  el.classList.add("active");
+}
+
+function togglePhase(i) {
+  const b = document.getElementById("pb-"+i);
+  const t = document.getElementById("tog-"+i);
+  const o = b.classList.toggle("open");
+  t.textContent = o?"▲":"▼";
+}
+
+function toggleCheck(i) {
+  const on = document.getElementById("ci-"+i).classList.toggle("checked");
+  const cb = document.getElementById("cb-"+i);
+  cb.textContent = on?"✓":"";
+  cb.style.background  = on?"#6366f1":"transparent";
+  cb.style.borderColor = on?"#6366f1":"#334155";
+  cb.style.color = "#fff";
+  document.getElementById("cl-"+i).style.color = on?"#f1f5f9":"#64748b";
+}
+
+async function refreshData() {
+  document.getElementById("analysis-loading").style.display="block";
+  document.getElementById("analysis-content").style.display="none";
+  document.getElementById("last-update").textContent="Refreshing...";
+  await Promise.all(FRED_SERIES.map(fetchFred));
+  buildAnalysis();
+  buildIndicators();
+  document.getElementById("last-update").textContent="Last updated: "+new Date().toLocaleTimeString();
+  document.getElementById("analysis-loading").style.display="none";
+  document.getElementById("analysis-content").style.display="block";
+}
+
+buildCycle();
+buildSources();
+refreshData();
+</script>
+</body>
+</html>
