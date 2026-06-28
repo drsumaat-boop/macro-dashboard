@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Macro Mental Map</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #060910; color: #e2e8f0; font-family: 'Courier New', monospace; min-height: 100vh; }
+
+/* HEADER */
+.header { padding: 24px 16px 16px; border-bottom: 1px solid #0f1929; background: linear-gradient(180deg, #0a0f1e 0%, #060910 100%); }
+.header-eye { font-size: 9px; color: #1e3a5f; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 6px; }
+.header-title { font-size: 20px; font-weight: 700; color: #f0f4ff; letter-spacing: -0.5px; }
+.header-sub { font-size: 10px; color: #2d4a6e; margin-top: 4px; letter-spacing: 1px; }
+
+/* SEARCH */
+.search-bar { margin: 14px 16px; position: relative; }
+.search-input { width: 100%; background: #0a0f1e; border: 1px solid #0f1929; border-radius: 6px; padding: 9px 12px 9px 32px; font-size: 11px; color: #94a3b8; font-family: inherit; outline: none; }
+.search-input:focus { border-color: #1e3a5f; color: #e2e8f0; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #2d4a6e; }
+
+/* TREE */
+.tree { padding: 8px 12px 40px; }
+
+/* TRUNK */
+.trunk { background: linear-gradient(135deg, #0a1628, #0f2040); border: 1px solid #1e3a5f; border-left: 4px solid #3b82f6; border-radius: 10px; padding: 16px 18px; margin-bottom: 6px; cursor: pointer; position: relative; }
+.trunk-label { font-size: 9px; color: #3b82f6; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+.trunk-title { font-size: 16px; font-weight: 700; color: #f0f4ff; }
+.trunk-desc { font-size: 10px; color: #4a6fa5; margin-top: 4px; line-height: 1.5; }
+.trunk-toggle { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #3b82f6; }
+
+/* BRANCH connector */
+.branch-connector { margin-left: 16px; border-left: 1px dashed #0f2040; padding-left: 12px; margin-bottom: 4px; }
+
+/* BRANCH */
+.branch { border-radius: 8px; padding: 12px 14px; margin-bottom: 5px; cursor: pointer; position: relative; border: 1px solid transparent; transition: border-color 0.2s; }
+.branch:hover { border-color: #1e3a5f; }
+.branch-header { display: flex; justify-content: space-between; align-items: center; }
+.branch-num { font-size: 9px; letter-spacing: 2px; margin-bottom: 3px; }
+.branch-title { font-size: 13px; font-weight: 700; }
+.branch-tagline { font-size: 10px; margin-top: 3px; line-height: 1.4; }
+.branch-toggle { font-size: 14px; flex-shrink: 0; margin-left: 8px; }
+.branch-body { display: none; margin-top: 12px; padding-top: 10px; }
+.branch-body.open { display: block; }
+
+/* TWIG connector */
+.twig-connector { margin-left: 10px; border-left: 1px dashed; padding-left: 10px; }
+
+/* TWIG */
+.twig { border-radius: 6px; padding: 10px 12px; margin-bottom: 4px; cursor: pointer; border: 1px solid transparent; }
+.twig:hover { opacity: 0.85; }
+.twig-header { display: flex; justify-content: space-between; align-items: center; }
+.twig-title { font-size: 11px; font-weight: 600; }
+.twig-toggle { font-size: 11px; flex-shrink: 0; }
+.twig-body { display: none; margin-top: 8px; padding-top: 8px; }
+.twig-body.open { display: block; }
+
+/* LEAF */
+.leaf-connector { margin-left: 8px; border-left: 1px dotted; padding-left: 8px; }
+.leaf { padding: 5px 8px; margin-bottom: 3px; border-radius: 4px; font-size: 10px; line-height: 1.5; display: flex; align-items: flex-start; gap: 6px; }
+.leaf-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.leaf-text { color: #64748b; }
+.leaf-key { color: #94a3b8; font-weight: 600; }
+
+/* FRED badge */
+.fred-badge { font-size: 8px; background: #0a1628; border: 1px solid #1e3a5f; color: #3b82f6; padding: 1px 5px; border-radius: 3px; letter-spacing: 1px; display: inline-block; margin-left: 4px; cursor: pointer; }
+
+/* RULE BOX */
+.rule-box { background: #070c17; border: 1px solid #0f1929; border-radius: 8px; padding: 12px 14px; margin-top: 10px; }
+.rule-title { font-size: 9px; color: #2d4a6e; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+.rule-item { font-size: 10px; color: #4a6fa5; padding: 4px 0; border-bottom: 1px solid #0a0f1e; line-height: 1.5; }
+.rule-item:last-child { border-bottom: none; }
+
+/* ALGO SECTION */
+.algo { background: #070c17; border: 1px solid #0f2040; border-radius: 10px; padding: 16px; margin: 12px 0 0; }
+.algo-title { font-size: 9px; color: #3b82f6; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+.algo-step { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #0a0f1e; align-items: flex-start; }
+.algo-step:last-child { border-bottom: none; }
+.algo-num { font-size: 10px; font-weight: 700; width: 20px; flex-shrink: 0; margin-top: 1px; }
+.algo-content { flex: 1; }
+.algo-name { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+.algo-desc { font-size: 10px; color: #2d4a6e; line-height: 1.5; }
+.algo-fred { font-size: 9px; margin-top: 4px; }
+
+/* HIDDEN by search */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eye">Macro Framework</div>
+  <div class="header-title">The Complete Mental Map</div>
+  <div class="header-sub">Tap any node to expand · Trunk → Branch → Twig → Leaf</div>
+</div>
+
+<div class="search-bar">
+  <span class="search-icon">⌕</span>
+  <input class="search-input" type="text" placeholder="Search any concept..." oninput="searchTree(this.value)"/>
+</div>
+
+<div class="tree" id="tree">
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- TRUNK -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="trunk" onclick="toggleEl('trunk-body')">
+    <div class="trunk-label">The Trunk — Master Root</div>
+    <div class="trunk-title">🌳 Interest Rates = Direction of All Money</div>
+    <div class="trunk-desc">The Fed controls the price of money. That price determines where every dollar in the global economy flows. Everything else is downstream of this single fact.</div>
+    <div class="trunk-toggle" id="trunk-icon">▼</div>
+  </div>
+
+  <div id="trunk-body" style="display:none">
+  <div class="branch-connector">
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 1: FED POLICY -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#08111e;border-color:#1e3a5f" onclick="toggleBranch('b1')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#3b82f6">STEP 1 — THE FRAME</div>
+          <div class="branch-title" style="color:#60a5fa">🏛 Fed Policy</div>
+          <div class="branch-tagline" style="color:#2d4a6e">Where is the rate cycle? This sets gravity for all assets.</div>
+        </div>
+        <div class="branch-toggle" id="b1-icon" style="color:#3b82f6">▼</div>
+      </div>
+      <div class="branch-body" id="b1">
+        <div class="twig-connector" style="border-color:#1e3a5f">
+
+          <!-- TWIG: Fed Tools -->
+          <div class="twig" style="background:#060d1a" onclick="toggleTwig('t1a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#93c5fd">Fed Tools</div>
+              <div class="twig-toggle" id="t1a-icon" style="color:#3b82f6">▼</div>
+            </div>
+            <div class="twig-body" id="t1a">
+              <div class="leaf-connector" style="border-color:#1e3a5f">
+                <div class="leaf"><div class="leaf-dot" style="background:#3b82f6"></div><div><span class="leaf-key">Fed Funds Rate</span><span class="leaf-text"> — overnight rate, the starting price of all money</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#3b82f6"></div><div><span class="leaf-key">Forward Guidance</span><span class="leaf-text"> — words move markets before action. Bond market prices this immediately</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#3b82f6"></div><div><span class="leaf-key">QE / QT</span><span class="leaf-text"> — buying or selling bonds. QE adds money, QT removes it</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#3b82f6"></div><div><span class="leaf-key">Dot Plot</span><span class="leaf-text"> — Fed's own forecast of future rates. Compare to bond market pricing</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TWIG: Rate Direction -->
+          <div class="twig" style="background:#060d1a" onclick="toggleTwig('t1b')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#93c5fd">Rate Direction → Asset Flow</div>
+              <div class="twig-toggle" id="t1b-icon" style="color:#3b82f6">▼</div>
+            </div>
+            <div class="twig-body" id="t1b">
+              <div class="leaf-connector" style="border-color:#1e3a5f">
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Rates FALLING ↓</span><span class="leaf-text"> — money flows into stocks, gold, real estate, EM, commodities. Growth assets appreciate</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Rates RISING ↑</span><span class="leaf-text"> — money flows into cash, short bonds, financials, dollar. Growth assets punished</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f59e0b"></div><div><span class="leaf-key">Direction = Gravity</span><span class="leaf-text"> — high rates = strong gravity pulling money to safe yield. Low rates = money floats into risk</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#a78bfa"></div><div><span class="leaf-key">Anticipation &gt; Action</span><span class="leaf-text"> — markets move on EXPECTATION of rate change, not the change itself. Be early</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TWIG: Where to Look -->
+          <div class="twig" style="background:#060d1a" onclick="toggleTwig('t1c')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#93c5fd">Where to Look</div>
+              <div class="twig-toggle" id="t1c-icon" style="color:#3b82f6">▼</div>
+            </div>
+            <div class="twig-body" id="t1c">
+              <div class="leaf-connector" style="border-color:#1e3a5f">
+                <div class="leaf"><div class="leaf-dot" style="background:#3b82f6"></div><div><span class="leaf-key">FRED: FEDFUNDS</span><span class="leaf-text"> — actual Fed Funds rate today</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#3b82f6"></div><div><span class="leaf-key">CME FedWatch</span><span class="leaf-text"> — market probability of next hike/cut. Most forward looking tool</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#3b82f6"></div><div><span class="leaf-key">FRED: DGS2</span><span class="leaf-text"> — 2Y yield = bond market's real time verdict on Fed path</span></div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="rule-box">
+          <div class="rule-title">Golden Rule</div>
+          <div class="rule-item">→ Fed sets short end. Bond market sets long end. Both together = full picture</div>
+          <div class="rule-item">→ When Fed and bond market disagree — always side with bond market</div>
+          <div class="rule-item">→ 2Y yield = jury verdict. Fed announcement = judge reading it out. Jury decided weeks ago</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 2: SPOT BOND MARKET -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#0d0d1a;border-color:#312e81" onclick="toggleBranch('b2')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#818cf8">THE GLUE — CONNECTS EVERYTHING</div>
+          <div class="branch-title" style="color:#a5b4fc">⚖️ Spot Bond Market</div>
+          <div class="branch-tagline" style="color:#312e81">The master scoreboard. Largest, smartest money on the planet pricing all macro in real time.</div>
+        </div>
+        <div class="branch-toggle" id="b2-icon" style="color:#818cf8">▼</div>
+      </div>
+      <div class="branch-body" id="b2">
+        <div class="twig-connector" style="border-color:#312e81">
+
+          <!-- TWIG: Price vs Yield -->
+          <div class="twig" style="background:#09091a" onclick="toggleTwig('t2a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#c7d2fe">Price vs Yield — The Foundation</div>
+              <div class="twig-toggle" id="t2a-icon" style="color:#818cf8">▼</div>
+            </div>
+            <div class="twig-body" id="t2a">
+              <div class="leaf-connector" style="border-color:#312e81">
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">Always inverse</span><span class="leaf-text"> — price UP = yield DOWN. Price DOWN = yield UP. Never forget this</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">Fixed coupon</span><span class="leaf-text"> — bond pays fixed amount. Pay more for it = lower effective return = lower yield</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">Selling bonds</span><span class="leaf-text"> — means prices fall = yields rise = tighter conditions for everyone</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TWIG: Yield Curve — THE MOST IMPORTANT -->
+          <div class="twig" style="background:#09091a" onclick="toggleTwig('t2b')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#c7d2fe">🎯 Yield Curve — Most Important Single Number</div>
+              <div class="twig-toggle" id="t2b-icon" style="color:#818cf8">▼</div>
+            </div>
+            <div class="twig-body" id="t2b">
+              <div class="leaf-connector" style="border-color:#312e81">
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Steep (+0.5% or more)</span><span class="leaf-text"> — early/mid expansion. Risk on. Favour cyclicals and growth</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f59e0b"></div><div><span class="leaf-key">Flat (0 to +0.5%)</span><span class="leaf-text"> — late cycle warning. Rotate to value and defensives</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Inverted (negative)</span><span class="leaf-text"> — recession signal. Capital preservation. Bonds and gold</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#a78bfa"></div><div><span class="leaf-key">Un-inverting from inversion</span><span class="leaf-text"> — MOST DANGEROUS moment. Recession typically begins here not during inversion</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">FRED: T10Y2Y</span><span class="leaf-text"> — 10Y minus 2Y. Most watched spread</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">FRED: T10Y3M</span><span class="leaf-text"> — 10Y minus 3M. Fed's preferred measure. Often leads T10Y2Y</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TWIG: Curve Nuances -->
+          <div class="twig" style="background:#09091a" onclick="toggleTwig('t2c')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#c7d2fe">Curve Nuances — 7 Layers Deep</div>
+              <div class="twig-toggle" id="t2c-icon" style="color:#818cf8">▼</div>
+            </div>
+            <div class="twig-body" id="t2c">
+              <div class="leaf-connector" style="border-color:#312e81">
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Bull Steepening</span><span class="leaf-text"> — both yields fall, short end faster. Fed cutting. MOST BULLISH for risk assets. Early expansion</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Bear Flattening</span><span class="leaf-text"> — both yields rise, short end faster. Fed hiking aggressively. Classic late cycle. Growth stocks hurt</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f59e0b"></div><div><span class="leaf-key">Bear Steepening</span><span class="leaf-text"> — both rise, long end faster. Inflation fears. Negative for bonds AND growth</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#a78bfa"></div><div><span class="leaf-key">Inversion Sequence</span><span class="leaf-text"> — short end inverts first (2Y-5Y), then mid (5Y-10Y), then full (2Y-10Y). Earlier spreads give advance warning</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">Duration matters</span><span class="leaf-text"> — weeks = technical noise. Months = genuine signal. Deeper = more severe</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#60a5fa"></div><div><span class="leaf-key">Global curves</span><span class="leaf-text"> — US only = local issue. All major curves inverting = global recession signal. Much more serious</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TWIG: Real Yield -->
+          <div class="twig" style="background:#09091a" onclick="toggleTwig('t2d')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#c7d2fe">Real Yield (DFII10) — True Cost of Money</div>
+              <div class="twig-toggle" id="t2d-icon" style="color:#818cf8">▼</div>
+            </div>
+            <div class="twig-body" id="t2d">
+              <div class="leaf-connector" style="border-color:#312e81">
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">Formula</span><span class="leaf-text"> — Real Yield = Nominal Yield minus Inflation. Always check both</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Negative real yield</span><span class="leaf-text"> — most powerful tailwind for gold, real estate, commodities simultaneously</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Rising real yield</span><span class="leaf-text"> — gold falls. Growth stocks punished. Bonds attractive</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f59e0b"></div><div><span class="leaf-key">Passive tightening</span><span class="leaf-text"> — Fed holds rates but inflation falls = real yield rises = conditions tighten without Fed moving</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">FRED: DFII10, DFII5</span><span class="leaf-text"> — real yields at 10Y and 5Y maturities</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TWIG: Bond leads everything -->
+          <div class="twig" style="background:#09091a" onclick="toggleTwig('t2e')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#c7d2fe">Bond Market Leads Everything</div>
+              <div class="twig-toggle" id="t2e-icon" style="color:#818cf8">▼</div>
+            </div>
+            <div class="twig-body" id="t2e">
+              <div class="leaf-connector" style="border-color:#312e81">
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">Sequence always</span><span class="leaf-text"> — Bond market moves first → stocks follow weeks later → economy follows months later → Fed reacts last</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#818cf8"></div><div><span class="leaf-key">January 2022 proof</span><span class="leaf-text"> — 10Y rose January. S&P peaked January 3rd. Fed only hiked March. Bond market was months ahead</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#a78bfa"></div><div><span class="leaf-key">2Y = Jury verdict</span><span class="leaf-text"> — 2Y above Fed rate = market pricing hikes. 2Y below Fed rate = market pricing cuts. Real time signal</span></div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 3: INFLATION -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#130a08;border-color:#7c2d12" onclick="toggleBranch('b3')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#f97316">STEP 2 — CORNER PIECES</div>
+          <div class="branch-title" style="color:#fb923c">🔥 Inflation</div>
+          <div class="branch-tagline" style="color:#7c2d12">Drives Fed decisions. Rising = Fed forced to hike. Falling = Fed can cut.</div>
+        </div>
+        <div class="branch-toggle" id="b3-icon" style="color:#f97316">▼</div>
+      </div>
+      <div class="branch-body" id="b3">
+        <div class="twig-connector" style="border-color:#7c2d12">
+          <div class="twig" style="background:#0f0704" onclick="toggleTwig('t3a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#fdba74">Key Readings</div>
+              <div class="twig-toggle" id="t3a-icon" style="color:#f97316">▼</div>
+            </div>
+            <div class="twig-body" id="t3a">
+              <div class="leaf-connector" style="border-color:#7c2d12">
+                <div class="leaf"><div class="leaf-dot" style="background:#f97316"></div><div><span class="leaf-key">FRED: CPIAUCSL</span><span class="leaf-text"> — Consumer Price Index. Headline inflation monthly</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f97316"></div><div><span class="leaf-key">FRED: T10YIE</span><span class="leaf-text"> — 10Y Breakeven Inflation. What bond market EXPECTS inflation to be. Forward looking</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f97316"></div><div><span class="leaf-key">Oil price</span><span class="leaf-text"> — leads CPI by 2-3 months. Oil spike = inflation coming. Oil collapse = deflation risk</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f97316"></div><div><span class="leaf-key">Rising inflation</span><span class="leaf-text"> — Fed must hike. Bad for bonds. Bad for growth stocks. Good for commodities and value</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Falling inflation</span><span class="leaf-text"> — Fed can cut. Good for bonds. Good for growth stocks. Good for gold if real yields fall</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 4: EMPLOYMENT -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#0a1209;border-color:#14532d" onclick="toggleBranch('b4')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#22c55e">STEP 3 — BACKGROUND SECTIONS</div>
+          <div class="branch-title" style="color:#4ade80">👷 Employment</div>
+          <div class="branch-tagline" style="color:#14532d">Confirms real economy health. Strong jobs = Fed stays hawkish. Cracking = Fed pivots.</div>
+        </div>
+        <div class="branch-toggle" id="b4-icon" style="color:#22c55e">▼</div>
+      </div>
+      <div class="branch-body" id="b4">
+        <div class="twig-connector" style="border-color:#14532d">
+          <div class="twig" style="background:#060f06" onclick="toggleTwig('t4a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#86efac">Key Readings</div>
+              <div class="twig-toggle" id="t4a-icon" style="color:#22c55e">▼</div>
+            </div>
+            <div class="twig-body" id="t4a">
+              <div class="leaf-connector" style="border-color:#14532d">
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">FRED: UNRATE</span><span class="leaf-text"> — Unemployment rate. Rising = economy weakening = Fed will pivot</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">FRED: PAYEMS</span><span class="leaf-text"> — Nonfarm payrolls. Monthly. Strong number = economy healthy</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Initial jobless claims</span><span class="leaf-text"> — weekly. First to show cracks in labor market. Watch weekly</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f59e0b"></div><div><span class="leaf-key">Sahm Rule</span><span class="leaf-text"> — when unemployment rises 0.5% from 12-month low = recession has started. Historically accurate</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 5: CREDIT -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#0d0a16;border-color:#4c1d95" onclick="toggleBranch('b5')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#a78bfa">STEP 4 — CONNECTING PIECES</div>
+          <div class="branch-title" style="color:#c4b5fd">🔗 Credit Markets</div>
+          <div class="branch-tagline" style="color:#4c1d95">The early warning system. Stress shows here before equity markets react.</div>
+        </div>
+        <div class="branch-toggle" id="b5-icon" style="color:#a78bfa">▼</div>
+      </div>
+      <div class="branch-body" id="b5">
+        <div class="twig-connector" style="border-color:#4c1d95">
+          <div class="twig" style="background:#08060f" onclick="toggleTwig('t5a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#ddd6fe">Credit Spread Readings</div>
+              <div class="twig-toggle" id="t5a-icon" style="color:#a78bfa">▼</div>
+            </div>
+            <div class="twig-body" id="t5a">
+              <div class="leaf-connector" style="border-color:#4c1d95">
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Below 3.5%</span><span class="leaf-text"> — tight spreads. Risk on. Confidence high. Favour equities and cyclicals</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f59e0b"></div><div><span class="leaf-key">3.5% to 5%</span><span class="leaf-text"> — stress building. Be selective. Reduce high beta exposure</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Above 5%</span><span class="leaf-text"> — risk off. Capital preservation. Bonds and gold</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Above 500bps</span><span class="leaf-text"> — move from stress to distress. Major risk-off event. Reduce everything</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#a78bfa"></div><div><span class="leaf-key">FRED: BAMLH0A0HYM2</span><span class="leaf-text"> — ICE BofA HY OAS. The key credit spread to watch weekly</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 6: GROWTH / COPPER -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#0f0d08;border-color:#713f12" onclick="toggleBranch('b6')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#fbbf24">STEP 5 — DETAIL PIECES</div>
+          <div class="branch-title" style="color:#fcd34d">🔶 Growth Expectations</div>
+          <div class="branch-tagline" style="color:#713f12">Real world demand confirmation. Copper = doctor of the economy.</div>
+        </div>
+        <div class="branch-toggle" id="b6-icon" style="color:#fbbf24">▼</div>
+      </div>
+      <div class="branch-body" id="b6">
+        <div class="twig-connector" style="border-color:#713f12">
+          <div class="twig" style="background:#0a0804" onclick="toggleTwig('t6a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#fde68a">Copper/Gold Ratio — Best Single Growth Indicator</div>
+              <div class="twig-toggle" id="t6a-icon" style="color:#fbbf24">▼</div>
+            </div>
+            <div class="twig-body" id="t6a">
+              <div class="leaf-connector" style="border-color:#713f12">
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Ratio rising</span><span class="leaf-text"> — copper outperforming gold. Growth optimism. Industry buying copper. Risk on confirmed</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Ratio falling</span><span class="leaf-text"> — gold outperforming copper. Fear dominant. Slowdown signal. Risk off building</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#fbbf24"></div><div><span class="leaf-key">TradingView</span><span class="leaf-text"> — CAPITALCOM:COPPERGOLD. Check weekly alongside yield curve</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#fbbf24"></div><div><span class="leaf-key">FRED: INDPRO</span><span class="leaf-text"> — Industrial production. Confirms real demand in the economy</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 7: DOLLAR -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#05100f;border-color:#134e4a" onclick="toggleBranch('b7')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#2dd4bf">STEP 6 — THE BORDER</div>
+          <div class="branch-title" style="color:#5eead4">💵 US Dollar (DXY)</div>
+          <div class="branch-tagline" style="color:#134e4a">Transmission mechanism for global capital flows. Direction matters more than level.</div>
+        </div>
+        <div class="branch-toggle" id="b7-icon" style="color:#2dd4bf">▼</div>
+      </div>
+      <div class="branch-body" id="b7">
+        <div class="twig-connector" style="border-color:#134e4a">
+          <div class="twig" style="background:#030a09" onclick="toggleTwig('t7a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#99f6e4">Dollar Direction → Asset Impact</div>
+              <div class="twig-toggle" id="t7a-icon" style="color:#2dd4bf">▼</div>
+            </div>
+            <div class="twig-body" id="t7a">
+              <div class="leaf-connector" style="border-color:#134e4a">
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Strong dollar ↑</span><span class="leaf-text"> — commodities fall (priced in USD). EM suffers (dollar debt expensive). Gold headwind</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Weak dollar ↓</span><span class="leaf-text"> — commodities rise. EM rallies. Gold tailwind. Risk assets globally supported</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#2dd4bf"></div><div><span class="leaf-key">Dollar follows yields</span><span class="leaf-text"> — higher US yields attract foreign capital = dollar strengthens. Lower yields = weakens</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#2dd4bf"></div><div><span class="leaf-key">FRED: DTWEXBGS</span><span class="leaf-text"> — USD Broad Index. More comprehensive than DXY alone</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 8: VIX / GOLD -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#0f0a05;border-color:#78350f" onclick="toggleBranch('b8')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#f59e0b">STEP 7 — FINAL PIECES</div>
+          <div class="branch-title" style="color:#fbbf24">🛡 VIX + Gold — Risk Confirmation</div>
+          <div class="branch-tagline" style="color:#78350f">Final check. Are investors behaving consistently with what the macro says?</div>
+        </div>
+        <div class="branch-toggle" id="b8-icon" style="color:#f59e0b">▼</div>
+      </div>
+      <div class="branch-body" id="b8">
+        <div class="twig-connector" style="border-color:#78350f">
+
+          <div class="twig" style="background:#0a0703" onclick="toggleTwig('t8a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#fde68a">VIX Readings</div>
+              <div class="twig-toggle" id="t8a-icon" style="color:#f59e0b">▼</div>
+            </div>
+            <div class="twig-body" id="t8a">
+              <div class="leaf-connector" style="border-color:#78350f">
+                <div class="leaf"><div class="leaf-dot" style="background:#f59e0b"></div><div><span class="leaf-key">Below 15</span><span class="leaf-text"> — complacency. Late cycle warning. Market not pricing any risk</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">15 to 25</span><span class="leaf-text"> — normal healthy range. Risk appetite intact</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#f97316"></div><div><span class="leaf-key">25 to 35</span><span class="leaf-text"> — fear rising. Reduce risk. Be selective</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Above 35-40</span><span class="leaf-text"> — panic. Potential buying opportunity if macro supports recovery</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="twig" style="background:#0a0703" onclick="toggleTwig('t8b')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#fde68a">Gold Signals</div>
+              <div class="twig-toggle" id="t8b-icon" style="color:#f59e0b">▼</div>
+            </div>
+            <div class="twig-body" id="t8b">
+              <div class="leaf-connector" style="border-color:#78350f">
+                <div class="leaf"><div class="leaf-dot" style="background:#fbbf24"></div><div><span class="leaf-key">Gold rising + news bearish</span><span class="leaf-text"> — MOST BULLISH signal. Smart money accumulating. Believe price not headlines</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#fbbf24"></div><div><span class="leaf-key">Gold vs real yield</span><span class="leaf-text"> — strongest relationship in macro. Real yield falls = gold rises. Always check DFII10 with gold</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#fbbf24"></div><div><span class="leaf-key">Gold + copper both rising</span><span class="leaf-text"> — growth optimism. Copper confirming gold's move is not just fear</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#fbbf24"></div><div><span class="leaf-key">Gold rising alone</span><span class="leaf-text"> — pure fear signal. Dollar weakness or credit stress. Check VIX and credit spreads</span></div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────── -->
+    <!-- BRANCH 9: BUSINESS CYCLE -->
+    <!-- ─────────────────────────────── -->
+    <div class="branch" style="background:#080d14;border-color:#1e3a5f" onclick="toggleBranch('b9')">
+      <div class="branch-header">
+        <div>
+          <div class="branch-num" style="color:#60a5fa">THE OUTPUT — WHERE ALL 7 STEPS LEAD</div>
+          <div class="branch-title" style="color:#93c5fd">🔄 Business Cycle Phase</div>
+          <div class="branch-tagline" style="color:#1e3a5f">All 7 inputs combined tell you which phase you are in. Phase tells you what to own.</div>
+        </div>
+        <div class="branch-toggle" id="b9-icon" style="color:#60a5fa">▼</div>
+      </div>
+      <div class="branch-body" id="b9">
+        <div class="twig-connector" style="border-color:#1e3a5f">
+
+          <div class="twig" style="background:#052e16;border:1px solid #14532d" onclick="toggleTwig('t9a')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#4ade80">Phase 1 — Early Expansion</div>
+              <div class="twig-toggle" id="t9a-icon" style="color:#22c55e">▼</div>
+            </div>
+            <div class="twig-body" id="t9a">
+              <div class="leaf-connector" style="border-color:#14532d">
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Signals</span><span class="leaf-text"> — curve steepening, spreads tightening, VIX falling, Fed cutting</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Favour</span><span class="leaf-text"> — cyclicals, growth stocks, small caps, EM, corporate bonds</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#64748b"></div><div><span class="leaf-key">Avoid</span><span class="leaf-text"> — defensives, cash, long USD positions</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="twig" style="background:#0c1a2e;border:1px solid #1e3a5f" onclick="toggleTwig('t9b')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#93c5fd">Phase 2 — Mid Expansion</div>
+              <div class="twig-toggle" id="t9b-icon" style="color:#60a5fa">▼</div>
+            </div>
+            <div class="twig-body" id="t9b">
+              <div class="leaf-connector" style="border-color:#1e3a5f">
+                <div class="leaf"><div class="leaf-dot" style="background:#60a5fa"></div><div><span class="leaf-key">Signals</span><span class="leaf-text"> — curve positive, spreads tight, VIX low, earnings growing</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#60a5fa"></div><div><span class="leaf-key">Favour</span><span class="leaf-text"> — broad equities, commodities rising, EM, real assets</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#64748b"></div><div><span class="leaf-key">Avoid</span><span class="leaf-text"> — long bonds struggling, defensives underperform</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="twig" style="background:#1c1007;border:1px solid #713f12" onclick="toggleTwig('t9c')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#fcd34d">Phase 3 — Late Expansion</div>
+              <div class="twig-toggle" id="t9c-icon" style="color:#fbbf24">▼</div>
+            </div>
+            <div class="twig-body" id="t9c">
+              <div class="leaf-connector" style="border-color:#713f12">
+                <div class="leaf"><div class="leaf-dot" style="background:#fbbf24"></div><div><span class="leaf-key">Signals</span><span class="leaf-text"> — curve flattening, inflation rising, Fed hiking, spreads bottoming</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#fbbf24"></div><div><span class="leaf-key">Favour</span><span class="leaf-text"> — commodities, value stocks, financials, energy, short duration</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Avoid</span><span class="leaf-text"> — growth/tech, long bonds, housing</span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="twig" style="background:#1c0707;border:1px solid #7f1d1d" onclick="toggleTwig('t9d')">
+            <div class="twig-header">
+              <div class="twig-title" style="color:#fca5a5">Phase 4 — Contraction</div>
+              <div class="twig-toggle" id="t9d-icon" style="color:#ef4444">▼</div>
+            </div>
+            <div class="twig-body" id="t9d">
+              <div class="leaf-connector" style="border-color:#7f1d1d">
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Signals</span><span class="leaf-text"> — curve inverted then un-inverting, spreads widening, VIX spiking, earnings falling</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#22c55e"></div><div><span class="leaf-key">Favour</span><span class="leaf-text"> — government bonds, gold, USD, defensives (utilities, healthcare)</span></div></div>
+                <div class="leaf"><div class="leaf-dot" style="background:#ef4444"></div><div><span class="leaf-key">Avoid</span><span class="leaf-text"> — cyclicals, commodities, EM, high yield bonds</span></div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ALGORITHM BOX -->
+    <div class="algo">
+      <div class="algo-title">⟳ The Weekly Algorithm — Run Every Monday</div>
+      <div class="algo-step">
+        <div class="algo-num" style="color:#3b82f6">1</div>
+        <div class="algo-content">
+          <div class="algo-name" style="color:#60a5fa">Fed Policy</div>
+          <div class="algo-desc">Any speeches or minutes this week? Did CME FedWatch shift probabilities? Is 2Y yield above or below Fed Funds rate?</div>
+          <div class="algo-fred" style="color:#1e3a5f">FEDFUNDS · DGS2 · CME FedWatch</div>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num" style="color:#f97316">2</div>
+        <div class="algo-content">
+          <div class="algo-name" style="color:#fb923c">Inflation</div>
+          <div class="algo-desc">CPI surprise up or down? Are breakevens rising or falling? Is oil signalling pressure ahead?</div>
+          <div class="algo-fred" style="color:#7c2d12">CPIAUCSL · T10YIE · Oil price</div>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num" style="color:#22c55e">3</div>
+        <div class="algo-content">
+          <div class="algo-name" style="color:#4ade80">Employment</div>
+          <div class="algo-desc">Jobless claims up or down? Any payroll surprise? Unemployment rate trend?</div>
+          <div class="algo-fred" style="color:#14532d">UNRATE · PAYEMS · Jobless claims</div>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num" style="color:#a78bfa">4</div>
+        <div class="algo-content">
+          <div class="algo-name" style="color:#c4b5fd">Credit</div>
+          <div class="algo-desc">Did spreads tighten or widen this week? Is yield curve steepening or flattening?</div>
+          <div class="algo-fred" style="color:#4c1d95">BAMLH0A0HYM2 · T10Y2Y · T10Y3M</div>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num" style="color:#fbbf24">5</div>
+        <div class="algo-content">
+          <div class="algo-name" style="color:#fcd34d">Growth</div>
+          <div class="algo-desc">Is copper rising or falling? Is Copper/Gold ratio trending up or down?</div>
+          <div class="algo-fred" style="color:#713f12">CAPITALCOM:COPPERGOLD · INDPRO</div>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num" style="color:#2dd4bf">6</div>
+        <div class="algo-content">
+          <div class="algo-name" style="color:#5eead4">Dollar</div>
+          <div class="algo-desc">Is DXY strengthening or weakening? Which direction are yield differentials pushing it?</div>
+          <div class="algo-fred" style="color:#134e4a">DTWEXBGS · TVC:DXY</div>
+        </div>
+      </div>
+      <div class="algo-step">
+        <div class="algo-num" style="color:#f59e0b">7</div>
+        <div class="algo-content">
+          <div class="algo-name" style="color:#fbbf24">Risk Appetite</div>
+          <div class="algo-desc">Is VIX rising or falling? Is gold moving with or against fundamentals? What is the market confirming?</div>
+          <div class="algo-fred" style="color:#78350f">CBOE:VIX · GOLDAMGBD228NLBM · DFII10</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:10px 12px;background:#060910;border-radius:6px;border:1px solid #0f1929">
+        <div style="font-size:10px;color:#2d4a6e;margin-bottom:6px;letter-spacing:1px">CONCLUSION</div>
+        <div style="font-size:11px;color:#4a6fa5;line-height:1.7">5+ answers pointing same direction = that IS the macro environment.<br>Trade WITH it. Never against it.</div>
+      </div>
+    </div>
+
+  </div><!-- end branch-connector -->
+  </div><!-- end trunk-body -->
+
+</div><!-- end tree -->
+
+<script>
+function toggleEl(id) {
+  const el = document.getElementById(id);
+  const icon = document.getElementById('trunk-icon');
+  const open = el.style.display === 'none' || el.style.display === '';
+  el.style.display = open ? 'block' : 'none';
+  icon.textContent = open ? '▲' : '▼';
+}
+
+function toggleBranch(id) {
+  const body = document.getElementById(id);
+  const icon = document.getElementById(id+'-icon');
+  const open = body.classList.toggle('open');
+  icon.textContent = open ? '▲' : '▼';
+}
+
+function toggleTwig(id) {
+  const body = document.getElementById(id);
+  const icon = document.getElementById(id+'-icon');
+  const open = body.classList.toggle('open');
+  icon.textContent = open ? '▲' : '▼';
+}
+
+function searchTree(query) {
+  const q = query.toLowerCase().trim();
+  if (!q) {
+    document.querySelectorAll('.branch, .twig, .leaf').forEach(el => el.classList.remove('hidden'));
+    return;
+  }
+  document.querySelectorAll('.leaf').forEach(leaf => {
+    const text = leaf.textContent.toLowerCase();
+    leaf.classList.toggle('hidden', !text.includes(q));
+  });
+  document.querySelectorAll('.twig').forEach(twig => {
+    const visibleLeaves = twig.querySelectorAll('.leaf:not(.hidden)');
+    if (visibleLeaves.length > 0) {
+      twig.classList.remove('hidden');
+      twig.querySelector('.twig-body')?.classList.add('open');
+      const icon = twig.querySelector('.twig-toggle');
+      if (icon) icon.textContent = '▲';
+    } else {
+      const twigText = twig.querySelector('.twig-title')?.textContent.toLowerCase() || '';
+      twig.classList.toggle('hidden', !twigText.includes(q));
+    }
+  });
+  document.querySelectorAll('.branch').forEach(branch => {
+    const visibleTwigs = branch.querySelectorAll('.twig:not(.hidden)');
+    if (visibleTwigs.length > 0) {
+      branch.classList.remove('hidden');
+      branch.querySelector('.branch-body')?.classList.add('open');
+      const icon = branch.querySelector('.branch-toggle');
+      if (icon) icon.textContent = '▲';
+    } else {
+      const branchText = branch.querySelector('.branch-title')?.textContent.toLowerCase() || '';
+      branch.classList.toggle('hidden', !branchText.includes(q));
+    }
+  });
+  // Open trunk
+  if (q) {
+    document.getElementById('trunk-body').style.display = 'block';
+    document.getElementById('trunk-icon').textContent = '▲';
+  }
+}
+
+// Open trunk by default
+document.getElementById('trunk-body').style.display = 'block';
+document.getElementById('trunk-icon').textContent = '▲';
+</script>
+</body>
+</html>
